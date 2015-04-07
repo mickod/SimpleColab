@@ -12,7 +12,7 @@
     <LinearLayout 
 	    android:id="@+id/top_area"
         android:orientation="vertical"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp" >
     
@@ -26,8 +26,7 @@
 	    
 			<TextView
 		        android:id="@+id/result_label"
-		        android:layout_width="wrap_content"
-				android:layout_weight="1"
+		        android:layout_width="100dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
 		        android:textStyle="bold" 
@@ -36,11 +35,11 @@
 	        
 		    <TextView
 		        android:id="@+id/result"
-		        android:layout_width="wrap_content"
-		        android:layout_weight="7"
+		        android:layout_width="200dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
 		        android:textStyle="bold" 
+		      	android:background="#E0EBEB"
 		        android:textSize="18sp" />
 			    
 		 </LinearLayout>
@@ -54,8 +53,7 @@
 	    
 			<TextView
 		        android:id="@+id/time_label"
-		        android:layout_width="wrap_content"
-				android:layout_weight="1"
+		        android:layout_width="100dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
 		        android:textStyle="bold" 
@@ -64,11 +62,11 @@
 	        
 		    <TextView
 		        android:id="@+id/time"
-		        android:layout_width="wrap_content"
-		        android:layout_weight="7"
+		        android:layout_width="200dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
-		        android:textStyle="bold" 
+		        android:textStyle="bold"
+		        android:background="#E0EBEB"
 		        android:textSize="18sp" />
 			    
 			</LinearLayout>
@@ -82,8 +80,7 @@
 	    
 			<TextView
 		        android:id="@+id/progress_label"
-		        android:layout_width="wrap_content"
-				android:layout_weight="1"
+		        android:layout_width="100dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
 		        android:textStyle="bold" 
@@ -92,11 +89,39 @@
 	        
 		    <TextView
 		        android:id="@+id/progress"
-		        android:layout_width="wrap_content"
-		        android:layout_weight="7"
+		        android:layout_width="200dp"
 		        android:layout_height="40dp"
 		        android:layout_margin="5dp"
 		        android:textStyle="bold" 
+		        android:background="#E0EBEB"
+		        android:textSize="18sp" />
+			    
+			</LinearLayout>	
+			
+	     <!-- File size Area -->
+	     <LinearLayout
+	        android:id="@+id/file_size_area"
+	        android:orientation="horizontal"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content">
+	    
+			<TextView
+		        android:id="@+id/file_size_label"
+		        android:layout_width="100dp"
+		        android:layout_height="40dp"
+		        android:layout_margin="5dp"
+		        android:textStyle="bold" 
+		        android:textSize="18sp"
+		        android:text="@string/file_size_label"/>
+	        
+		    <EditText
+		        android:id="@+id/file_size"
+		        android:layout_width="200dp"
+		        android:layout_height="40dp"
+		        android:layout_margin="5dp"
+		        android:textStyle="bold" 
+		        android:inputType="number"
+		        android:background="#E0EBEB"
 		        android:textSize="18sp" />
 			    
 			</LinearLayout>	
@@ -110,12 +135,11 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp" >
+        android:padding="1dp" >
     
     	<!-- Button Area -->
 		<LinearLayout 
 		    android:id="@+id/button_area"
-		    android:layout_weight="1"
 		    android:layout_marginRight="1dp"
 	        android:orientation="vertical"
 	        android:layout_width="match_parent"
@@ -123,10 +147,11 @@
 	
 	        <Button
 	            android:id="@+id/local_compute_button"
-	            android:layout_width="fill_parent"
+	            android:layout_width="match_parent"
 	            android:layout_height="50dp"
 	            android:padding="10dp"
 	            android:layout_margin="4dp"
+	            android:gravity="center"
 	            android:text="@string/local_compute_button" />
 	        
 	        <Button

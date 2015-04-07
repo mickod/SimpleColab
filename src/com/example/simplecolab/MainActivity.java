@@ -5,10 +5,13 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
+import java.util.Random;
+
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
@@ -16,10 +19,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements OnClickListener, SimpleComputeTaskListener{
+public class MainActivity extends Activity implements OnClickListener, SimpleComputeTaskListener, ColabDistributionTaskListener {
 	
 	private Button localCompute;
 	private Button colabCompute;
@@ -29,6 +34,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	private long totalElapsedTime;
 	private final String numberFileName = "numberFile.txt";
 	private final int numberOfHelpers = 3;
+	private boolean[] chunkFinished;
+	private long totalResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +52,11 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         
         //Set the result, progress and time to blank
         clearDisplays();
+        
+        //Set the inital file size to 1000 and hide the keyboard
+    	EditText fileSizeEditText = (EditText) findViewById(R.id.file_size);
+    	fileSizeEditText.setText("1000");
+    	getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
 
@@ -74,6 +86,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 			Log.d("MainActivity","onClick colaborative compute Button");
     		colabComputeStartTime = System.nanoTime();
     		totalElapsedTime = 0;
+    		totalResult = 0;
     		clearDisplays();
     		
     		File numbersFile = new File(Environment.getExternalStorageDirectory()+ numberFileName);
@@ -85,6 +98,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     		}
     		
     		//Split file into chunks
+    		for (int i=0; i<numberOfHelpers; i++) {
+    			//Reset the chunk finished flags
+    			chunkFinished[i] = false;
+    		}
     		int chunkSize = (int) fileLength/numberOfHelpers;
 		    long totalCount = 0;
 		    int previousChunkEnd = 0;
@@ -126,7 +143,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     			    numbersBIS.close();	
     			    
     			    //Distribute this file to the helper
-    			    ColabDistributionTask colabDistributionTask = new ColabDistributionTask(this, this);
+    			    ColabDistributionTask colabDistributionTask = new ColabDistributionTask(this);
     				colabDistributionTask.execute(numberFileName);
     			    
     			} catch (IOException e) {
@@ -134,6 +151,45 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     	    	    e.printStackTrace();
     	    	}
     		} 
+		} else if (v == findViewById(R.id.generate_file_button)) {
+			//Generate file button
+			Log.d("MainActivity","onClick generate_file_button");
+			
+			//Create the numbers file
+	    	String numbersFilePath;
+	    	File numbersFile;
+	    	numbersFile = new File( Environment.getExternalStorageDirectory() + numberFileName);
+	    	if(numbersFile.exists()) {
+				//Delete the file and create a new one
+				boolean fileDeleted = numbersFile.delete();
+				if (!fileDeleted) {
+					//log error and return
+					Log.d("MainActivity onClick","numbersFile: old file not deleted");
+					return;
+				}
+			}
+	    	
+	    	//Get the file size
+	    	EditText fileSizeEditText = (EditText) findViewById(R.id.file_size);
+	    	int numbersFileSize = Integer.parseInt(fileSizeEditText.getText().toString());
+	    	
+	    	//Fill numbers file with random numbers
+	    	BufferedOutputStream numberFileBOS;
+			try {
+				numberFileBOS = new BufferedOutputStream(new FileOutputStream(numbersFile));
+
+		    	Random rand = new Random();
+		    	for(int i =0; i < numbersFileSize; i++) {
+		    		//Write random integer, between 0 and 255 to numbers file 
+		    		int randInt = rand.nextInt(255 - 0 + 1) + 0; //random.nextInt(max - min + 1) + min
+		    		//Write the value 11 to the numbers file in every position
+		    		numberFileBOS.write((byte)11);
+		    	}
+			} catch (FileNotFoundException e) {
+				Log.d("MainActivity onClick","numbersFile: FileNotFoundException");
+			} catch (IOException e) {
+				Log.d("MainActivity onClick","numbersFile: IOException");
+			}
 		}
 	}
 	
@@ -149,7 +205,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 
 
 	@Override
-	public void onSimpleComputeFinished(int result) {
+	public void onSimpleComputeFinished(double result) {
 		//Compute finished
 		
 		//Stop timing and update time
@@ -161,7 +217,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         
         //Update the result
         TextView resultTextView = (TextView) findViewById(R.id.result);
-        resultTextView.setText(result);
+        String resultString = new DecimalFormat("0.000000").format(result/1000000000.0);
+        resultTextView.setText(resultString);
 	}
 
 
@@ -169,6 +226,43 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	public void onSimpleCommputePorgressUpdate() {
 		// Ignore
 		
+	}
+	
+	@Override
+	public void onChunkResultReady(int chunkNumber, long result) {
+		//Called when a result computed from a chunk of the number files is ready
+		Log.d("MainActivity onChunkResultReady","chunkNumber: " + chunkNumber);
+		Log.d("MainActivity onChunkResultReady","result: " + result);
+		
+		//Add the result and note that this chunk is finished
+		if ( chunkNumber >= 0 && chunkNumber < numberOfHelpers) {
+			chunkFinished[chunkNumber] = true; 
+			totalResult += result;
+		} else {
+			//Invalid chunk number for some reason...
+			Log.d("MainActivity onChunkResultReady","invlaid chunk number received");
+			return;
+		}
+		
+		//Check if we have all the chunks yet by - if not just return
+		for (int j = 0; j < numberOfHelpers; j++) {
+			if (chunkFinished[j] !=true) {
+				Log.d("MainActivity onChunkResultReady","All chunk results not yet received - returning");
+				return;
+			}
+		}
+		
+		//All Chunks received - display time and results. Time first...
+		long endTime = System.nanoTime();
+		totalElapsedTime = endTime - colabComputeStartTime;
+		TextView timeTextView = (TextView) findViewById(R.id.time);
+    	String colabComputeTimeString = new DecimalFormat("0.000000").format(totalElapsedTime/1000000000.0);
+    	timeTextView.setText(colabComputeTimeString);
+        
+        //Update the result
+        TextView resultTextView = (TextView) findViewById(R.id.result);
+        String totalResultString = new DecimalFormat("0.000000").format(totalResult/1000000000.0);
+        resultTextView.setText(totalResultString);
 	}
 
     
