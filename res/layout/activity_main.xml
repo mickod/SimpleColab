@@ -125,6 +125,34 @@
 		        android:textSize="18sp" />
 			    
 			</LinearLayout>	
+			
+	     <!-- iteration count Area -->
+	     <LinearLayout
+	        android:id="@+id/iteration_count_area"
+	        android:orientation="horizontal"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content">
+	    
+			<TextView
+		        android:id="@+id/iteration_count_label"
+		        android:layout_width="100dp"
+		        android:layout_height="40dp"
+		        android:layout_margin="5dp"
+		        android:textStyle="bold" 
+		        android:textSize="18sp"
+		        android:text="@string/iteration_count_label"/>
+	        
+		    <EditText
+		        android:id="@+id/iteration_count"
+		        android:layout_width="200dp"
+		        android:layout_height="40dp"
+		        android:layout_margin="5dp"
+		        android:textStyle="bold" 
+		        android:inputType="number"
+		        android:background="#E0EBEB"
+		        android:textSize="18sp" />
+			    
+			</LinearLayout>	
 	     
 	</LinearLayout>
 		

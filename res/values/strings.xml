@@ -11,5 +11,6 @@
     <string name="time_label">Time:</string>
     <string name="progress_label">Progress:</string>
     <string name="file_size_label">File Size:</string>
+    <string name="iteration_count_label">Iterations:</string>
 
 </resources>

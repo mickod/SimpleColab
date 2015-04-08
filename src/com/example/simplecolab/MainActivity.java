@@ -42,6 +42,9 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        //Keep screen on
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
         //Add Button Listeners
         localCompute = (Button) findViewById(R.id.local_compute_button);
         colabCompute = (Button) findViewById(R.id.colab_compute_button);
@@ -56,6 +59,11 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         //Set the inital file size to 1000 and hide the keyboard
     	EditText fileSizeEditText = (EditText) findViewById(R.id.file_size);
     	fileSizeEditText.setText("1000");
+    	getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+    	
+        //Set the inital iteration count to 1000 and hide the keyboard
+    	EditText iterationCountEditText = (EditText) findViewById(R.id.iteration_count);
+    	iterationCountEditText.setText("10000");
     	getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
@@ -79,8 +87,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     		simpleComputeStartTime = System.nanoTime();
     		totalElapsedTime = 0;
     		clearDisplays();
+        	EditText iterationCountEditText = (EditText) findViewById(R.id.iteration_count);
+        	String computeIterations = iterationCountEditText.getText().toString();
 			SimpleComputeTask simpleComputeTask = new SimpleComputeTask(this, this);
-			simpleComputeTask.execute(numberFileName);
+			simpleComputeTask.execute(numberFileName, computeIterations);
 		} else if (v == findViewById(R.id.colab_compute_button)) {
 			//Colaborative compute button
 			Log.d("MainActivity","onClick colaborative compute Button");
@@ -158,9 +168,9 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 			//Create the numbers file
 	    	String numbersFilePath;
 	    	File numbersFile;
-	    	numbersFile = new File( Environment.getExternalStorageDirectory() + numberFileName);
+	    	numbersFile = new File( Environment.getExternalStorageDirectory() + "/" + numberFileName);
 	    	if(numbersFile.exists()) {
-				//Delete the file and create a new one
+				//Delete the file
 				boolean fileDeleted = numbersFile.delete();
 				if (!fileDeleted) {
 					//log error and return
@@ -169,12 +179,29 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 				}
 			}
 	    	
+	    	BufferedOutputStream numberFileBOS;
+	    	try {
+				numberFileBOS = new BufferedOutputStream(new FileOutputStream(numbersFile));
+	    	} catch (IOException e) {
+				Log.d("MainActivity onClick","numbersFile: error !!!!!! numbers file");
+				e.printStackTrace();
+			}
+	    	
+	    	//Create the new file
+			try {
+				numbersFile.createNewFile();
+				Log.d("MainActivity onClick","numbersFile: created new numbers file");
+			} catch (IOException e) {
+				Log.d("MainActivity onClick","numbersFile: error creating numbers file");
+				e.printStackTrace();
+			}
+	    	
 	    	//Get the file size
 	    	EditText fileSizeEditText = (EditText) findViewById(R.id.file_size);
 	    	int numbersFileSize = Integer.parseInt(fileSizeEditText.getText().toString());
 	    	
 	    	//Fill numbers file with random numbers
-	    	BufferedOutputStream numberFileBOS;
+	    	//BufferedOutputStream numberFileBOS;
 			try {
 				numberFileBOS = new BufferedOutputStream(new FileOutputStream(numbersFile));
 
@@ -185,6 +212,9 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 		    		//Write the value 11 to the numbers file in every position
 		    		numberFileBOS.write((byte)11);
 		    	}
+		    	
+		    	numberFileBOS.flush();
+		    	numberFileBOS.close();
 			} catch (FileNotFoundException e) {
 				Log.d("MainActivity onClick","numbersFile: FileNotFoundException");
 			} catch (IOException e) {
@@ -219,13 +249,6 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         TextView resultTextView = (TextView) findViewById(R.id.result);
         String resultString = new DecimalFormat("0.000000").format(result/1000000000.0);
         resultTextView.setText(resultString);
-	}
-
-
-	@Override
-	public void onSimpleCommputePorgressUpdate() {
-		// Ignore
-		
 	}
 	
 	@Override
@@ -263,6 +286,16 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
         TextView resultTextView = (TextView) findViewById(R.id.result);
         String totalResultString = new DecimalFormat("0.000000").format(totalResult/1000000000.0);
         resultTextView.setText(totalResultString);
+	}
+
+
+	@Override
+	public void onSimpleCommputePorgressUpdate(int iterationCount) {
+		//Update the progess display
+		Log.d("MainActivity onChunkResultReady","progess report interationCount:" + iterationCount);
+        TextView progressTextView = (TextView) findViewById(R.id.progress);
+        progressTextView.setText(String.valueOf(iterationCount));
+		
 	}
 
     

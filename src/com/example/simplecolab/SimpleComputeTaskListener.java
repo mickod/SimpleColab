@@ -8,6 +8,6 @@ public interface SimpleComputeTaskListener {
 	public void onSimpleComputeFinished(double result);
 	// called when the compression task has completed
 	
-	public void onSimpleCommputePorgressUpdate();
+	public void onSimpleCommputePorgressUpdate(int interationCount);
 
 }

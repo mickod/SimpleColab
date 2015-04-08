@@ -11,7 +11,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
-public class SimpleComputeTask extends AsyncTask<String, String, Double> {
+public class SimpleComputeTask extends AsyncTask<String, Integer, Double> {
 	/* This Class is an AsynchTask to compress a video on a background thread
 	 * 
 	 */
@@ -34,9 +34,12 @@ public class SimpleComputeTask extends AsyncTask<String, String, Double> {
     	String numbersFilePath;
     	String numbersFileName;
     	File numbersFile;
-    	if (params.length == 1) {
+    	int computeIterations = 0;
+    	if (params.length == 2) {
     		numbersFileName = params[0];
-    		numbersFile = new File( Environment.getExternalStorageDirectory() + numbersFileName);
+    		numbersFile = new File( Environment.getExternalStorageDirectory() + "/" + numbersFileName);
+    		String iterationsString = params[1];
+    		computeIterations = Integer.parseInt(iterationsString);
     	} else {
     		//One or all of the params are not present - log an error and return
     		Log.d("SimpleComputeTask","doInBackground wrong number of params");
@@ -56,15 +59,30 @@ public class SimpleComputeTask extends AsyncTask<String, String, Double> {
     	
 	    	//Do the computation
 	    	int numbersFileSize = safeLongToInt(numbersFile.length());
+	    	Log.d("SimpleComputeTask","doInBackground numberfile length:" + numbersFile.length());
+	    	Log.d("SimpleComputeTask","doInBackground numberfile size:" + numbersFileSize);
 	    	
 	    	for(int i=0; i<numbersFileSize; i++) {
+	    		//Report progress every 100 loops
+	    		if( i % 50 == 0 ){
+	    			Log.d("SimpleComputeTask","doInBackground reporting progess i:" + i);
+	    			publishProgress(i);
+	    		}
+	    		
+	    		
 	    		byte thisByte[] = new byte[1];
 	    		int readResult = numbersFileIS.read(thisByte);
+	    		Log.d("SimpleComputeTask","doInBackground i" + i + "thisByte[0]: " + thisByte[0]);
 	    		if(readResult < 1) {
 	    			Log.d("SimpleComputeTask","doInBackground error reading numbers file");
 	    			return null;
 	    		}
-	    		result = (result + thisByte[0]) * 0.99999999;
+	    		double interim = 0;
+	    		for(int j=0; j<computeIterations; j++){
+	    			//Log.d("SimpleComputeTask","doInBackground j: " + j);
+	    			interim = Math.pow(thisByte[0], 2);
+	    		}
+	    		result = (result + interim) * 0.99999999;
 	    	}
 		} catch (FileNotFoundException e) {
 			Log.d("SimpleComputeTask","doInBackground numbersFile: FileNotFoundException");
@@ -77,8 +95,9 @@ public class SimpleComputeTask extends AsyncTask<String, String, Double> {
     }
     
     @Override
-    protected void onProgressUpdate(String... compressedFilePath) {
-    	// Do nothing
+    protected void onProgressUpdate(Integer... iterationCount) {
+    	//Report progress to listener
+    	thisTaskListener.onSimpleCommputePorgressUpdate(iterationCount[0]);
     }
     
     @Override
