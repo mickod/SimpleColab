@@ -33,9 +33,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	private long colabComputeStartTime;
 	private long totalElapsedTime;
 	private final String numberFileName = "numberFile.txt";
-	private final int numberOfHelpers = 3;
 	private boolean[] chunkFinished;
 	private long totalResult;
+	private final int numberOfHelpers = 2;
+	private final String helperIPAddresses[] = {"192.168.1.66", "192.168.1.171", "192.168.1.10"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,8 +154,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     			    numbersBIS.close();	
     			    
     			    //Distribute this file to the helper
+    			    EditText iterationCountEditText = (EditText) findViewById(R.id.iteration_count);
+    	        	String computeIterations = iterationCountEditText.getText().toString();
     			    ColabDistributionTask colabDistributionTask = new ColabDistributionTask(this);
-    				colabDistributionTask.execute(numberFileName);
+    				colabDistributionTask.execute(numberFileName, String.valueOf(i), helperIPAddresses[i], computeIterations);
     			    
     			} catch (IOException e) {
     	    		Log.d("MainActivity onClick","IO exception creating chunk files");

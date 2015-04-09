@@ -41,10 +41,13 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     	String numbersChunkFileName;
     	String helperIPAddress = null;
     	final int helperPort = 8080;
-    	if (params.length == 3) {
+    	int computeIterations = 0;
+    	if (params.length == 4) {
 	    	numbersChunkFileName = params[0];
 	    	chunkNumber = Integer.parseInt(params[1]);
 	    	helperIPAddress = params[2];
+	    	String computeIterationsString = params[3];
+	    	computeIterations = Integer.valueOf(computeIterationsString);
 	    	Log.d("ColabDistributionTask doInBackground","numbersChunkFileName: " + numbersChunkFileName);
 	    	Log.d("ColabDistributionTask doInBackground","chunkNumber: " + chunkNumber);	
 	    	Log.d("ColabDistributionTask doInBackground","helperIPAddress: " + helperIPAddress);	
@@ -74,6 +77,9 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     	    long chunkLength = numbersChunkFIle.length();
     	    helperSocketDOS.writeLong(chunkLength);
     	    Log.d("ColabDistributionTask doInBackground","chunkLength: " + chunkLength);
+    	    
+    	    //Next send the iteration count to the numbers file
+    	    helperSocketDOS.writeInt(computeIterations);
     	    
     	    //Now loop through the numbers chunk file sending it to the helper via the socket - note this will simply 
     	    //do nothing if the file is empty
@@ -128,7 +134,7 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     	    }
     	}
 
-    	//return the name of the compressed chunk file
+    	//return the result
     	return result;
     }
     
