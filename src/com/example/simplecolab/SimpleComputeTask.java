@@ -69,7 +69,6 @@ public class SimpleComputeTask extends AsyncTask<String, Integer, Double> {
 	    			publishProgress(i);
 	    		}
 	    		
-	    		
 	    		byte thisByte[] = new byte[1];
 	    		int readResult = numbersFileIS.read(thisByte);
 	    		Log.d("SimpleComputeTask","doInBackground i" + i + "thisByte[0]: " + thisByte[0]);
@@ -79,10 +78,9 @@ public class SimpleComputeTask extends AsyncTask<String, Integer, Double> {
 	    		}
 	    		double interim = 0;
 	    		for(int j=0; j<computeIterations; j++){
-	    			//Log.d("SimpleComputeTask","doInBackground j: " + j);
 	    			interim = Math.pow(thisByte[0], 2);
 	    		}
-	    		result = (result + interim) * 0.99999999;
+	    		result = result + interim;
 	    	}
 		} catch (FileNotFoundException e) {
 			Log.d("SimpleComputeTask","doInBackground numbersFile: FileNotFoundException");

@@ -67,7 +67,7 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     	    byte[] buffer = new byte[4096];
     	    
     	    //Write the numbers chunk file to the output stream
-    	    File numbersChunkFIle = new File(numbersChunkFileName);
+    	    File numbersChunkFIle = new File(Environment.getExternalStorageDirectory() + "/" + numbersChunkFileName);
     	    BufferedInputStream chunkFileIS = new BufferedInputStream(new FileInputStream(numbersChunkFIle));
     	    
     	    //First send a long with the file length - wrap the BufferedOutputStream  in a DataOuputStream to

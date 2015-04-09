@@ -33,10 +33,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	private long colabComputeStartTime;
 	private long totalElapsedTime;
 	private final String numberFileName = "numberFile.txt";
-	private boolean[] chunkFinished;
 	private long totalResult;
 	private final int numberOfHelpers = 2;
-	private final String helperIPAddresses[] = {"192.168.1.66", "192.168.1.171", "192.168.1.10"};
+	private boolean[] chunkFinished = new boolean[numberOfHelpers];
+	private final String helperIPAddresses[] = {"192.168.1.66", "192.168.1.10", "192.168.1.171"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,11 +100,14 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     		totalResult = 0;
     		clearDisplays();
     		
-    		File numbersFile = new File(Environment.getExternalStorageDirectory()+ numberFileName);
+    		File numbersFile = new File(Environment.getExternalStorageDirectory() + "/" + numberFileName);
     		long fileLength = numbersFile.length();
-    		if (fileLength > ((Integer.MAX_VALUE - 1) * numberOfHelpers)) {
+    		if ( (fileLength/numberOfHelpers) > (Integer.MAX_VALUE - 1) ) {
     			//File size is too big as chunks are restricted to the max size of Integer
     			Log.d("MainActivity onClick","File size is too big as chunks are restricted to the max size of Integer");
+    			Log.d("MainActivity onClick","File size is too big - fileLength: " + fileLength);
+    			Log.d("MainActivity onClick","File size is too big - fileLength/numberOfHelpers: " + fileLength/numberOfHelpers);
+    			Log.d("MainActivity onClick","File size is too big - (Integer.MAX_VALUE - 1): " + (Integer.MAX_VALUE - 1));
     			return;
     		}
     		
@@ -120,7 +123,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     		for (int i=0; i < numberOfHelpers; i++) {
     			try { 			    
     			    //Create the Chunk file
-    			    String numbersChunkFileName = "numbersChunk" + i + ".mp4";
+    			    String numbersChunkFileName = "numbersChunk" + i + ".txt";
     				File numbersChunkFile = new File(Environment.getExternalStorageDirectory() +  "/" + numbersChunkFileName);
     				if(numbersChunkFile.exists()) {
     					//Delete the file and create a new one
@@ -135,29 +138,28 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     				//Read in the bytes for this chunk file
     	    		chunkBoundary[i] = chunkSize * i;
     				BufferedInputStream numbersBIS = new BufferedInputStream(new FileInputStream(numbersFile));
-    				final int bufferSize = 1024;
-    			    byte[] bytes = new byte[bufferSize];
+    				final int bufferSize = 500;
+    			    byte[] bytes = new byte[chunkSize];
     				BufferedOutputStream chunkFileBOS = new BufferedOutputStream(new FileOutputStream(numbersChunkFile));
     			    int thisReadCount = 0;
-    			    while ( (thisReadCount = numbersBIS.read(bytes, previousChunkEnd, chunkSize)) > 0) {
-    			    	chunkFileBOS.write(bytes);
-    			    }
+    			    thisReadCount = numbersBIS.read(bytes, previousChunkEnd, chunkSize);
+    			    chunkFileBOS.write(bytes);
     			    previousChunkEnd = chunkBoundary[i];
-
-    			    Log.d("MainActivity onClick","chunkBoundary[i]: " + chunkBoundary[i]);
-    			    Log.d("MainActivity onClick","fileName: " + numbersChunkFileName);
-    			    Log.d("MainActivity onClick","fileSize: " + numbersChunkFile.length());
 
     			    //Tidy up
     			    chunkFileBOS.flush();
     			    chunkFileBOS.close();
     			    numbersBIS.close();	
+    			    Log.d("MainActivity onClick","chunkBoundary[i]: " + chunkBoundary[i]);
+    			    Log.d("MainActivity onClick","fileName: " + numbersChunkFileName);
+    			    Log.d("MainActivity onClick","fileSize: " + numbersChunkFile.length());
+    			    Log.d("MainActivity onClick","Origina numbers fileSize: " + numbersFile.length());
     			    
     			    //Distribute this file to the helper
     			    EditText iterationCountEditText = (EditText) findViewById(R.id.iteration_count);
     	        	String computeIterations = iterationCountEditText.getText().toString();
     			    ColabDistributionTask colabDistributionTask = new ColabDistributionTask(this);
-    				colabDistributionTask.execute(numberFileName, String.valueOf(i), helperIPAddresses[i], computeIterations);
+    				colabDistributionTask.execute(numbersChunkFileName, String.valueOf(i), helperIPAddresses[i], computeIterations);
     			    
     			} catch (IOException e) {
     	    		Log.d("MainActivity onClick","IO exception creating chunk files");
