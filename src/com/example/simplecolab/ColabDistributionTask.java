@@ -14,7 +14,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 
-public class ColabDistributionTask extends AsyncTask<String, String, Long> {
+public class ColabDistributionTask extends AsyncTask<String, String, Double> {
 	/* This Class is an AsynchTask to send a numbers file chunk to a helper app over a 
 	 * socket connection.
 	 * 
@@ -32,7 +32,7 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
 	}
 	
     @Override
-    protected Long doInBackground(String... params) {
+    protected Double doInBackground(String... params) {
     	//This the key method that is executed in the Asynch task -it sends the numbers file chunk to the helper app
     	//over a socket connection.
     	Log.d("ColabDistributionTask","doInBackground");
@@ -106,13 +106,13 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     	}
     	
     	//File has been sent - now need to wait for a response
-    	long result = 0;
+    	double result = 0;
     	try {
     		Log.d("ColabDistributionTask doInBackground","Waiting for response");
 			DataInputStream helperSocketDIS = new DataInputStream(helperSocket.getInputStream());
 			
 		    //The first part of the message should be the result 
-		    result = helperSocketDIS.readLong();
+		    result = helperSocketDIS.readDouble();
 		    Log.d("ColabDistributionTask doInBackground","result: " + result);
 		    
 		    //Tidy up
@@ -139,7 +139,7 @@ public class ColabDistributionTask extends AsyncTask<String, String, Long> {
     }
     
     @Override
-    protected void onPostExecute(Long result) {
+    protected void onPostExecute(Double result) {
     	// Update the listener with the compressed video path
     	thisTaskListener.onChunkResultReady(chunkNumber, result);
     }

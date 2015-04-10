@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.Random;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.app.Activity;
@@ -36,7 +37,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	private long totalResult;
 	private final int numberOfHelpers = 2;
 	private boolean[] chunkFinished = new boolean[numberOfHelpers];
-	private final String helperIPAddresses[] = {"192.168.1.66", "192.168.1.10", "192.168.1.171"};
+	private final String helperIPAddresses[] = {"192.168.1.66", "192.168.1.87", "192.168.1.171"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,12 +156,13 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
     			    Log.d("MainActivity onClick","fileSize: " + numbersChunkFile.length());
     			    Log.d("MainActivity onClick","Origina numbers fileSize: " + numbersFile.length());
     			    
-    			    //Distribute this file to the helper
+    			    //Distribute this file to the helper - to allow multiple AsynchTasks execute in parallel the 
+        	    	//'executeonExecutor' call is required. It needs to be used with caution to avoid the usual 
+    			    //synchronization issues and also to avoid too many threads being created
     			    EditText iterationCountEditText = (EditText) findViewById(R.id.iteration_count);
     	        	String computeIterations = iterationCountEditText.getText().toString();
     			    ColabDistributionTask colabDistributionTask = new ColabDistributionTask(this);
-    				colabDistributionTask.execute(numbersChunkFileName, String.valueOf(i), helperIPAddresses[i], computeIterations);
-    			    
+    				colabDistributionTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, numbersChunkFileName, String.valueOf(i), helperIPAddresses[i], computeIterations);    			    
     			} catch (IOException e) {
     	    		Log.d("MainActivity onClick","IO exception creating chunk files");
     	    	    e.printStackTrace();
@@ -257,7 +259,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleCom
 	}
 	
 	@Override
-	public void onChunkResultReady(int chunkNumber, long result) {
+	public void onChunkResultReady(int chunkNumber, double result) {
 		//Called when a result computed from a chunk of the number files is ready
 		Log.d("MainActivity onChunkResultReady","chunkNumber: " + chunkNumber);
 		Log.d("MainActivity onChunkResultReady","result: " + result);
